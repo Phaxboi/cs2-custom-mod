@@ -18,7 +18,12 @@ public class CustomModPlugin : BasePlugin
 
     private const int AnnounceMilliseconds = 5000;
 
+    private const int MenuMilliseconds = 20000;
+
     private ModifierEngine _engine = null!;
+
+    // Player slot -> until when their !modifier list accepts a number
+    private readonly Dictionary<int, long> _menuOpenUntil = new();
 
     // CS2 clears center HTML almost immediately (and on respawn), so it is re-sent every tick
     private string? _centerHtml;
@@ -33,6 +38,8 @@ public class CustomModPlugin : BasePlugin
             _centerHtml = null;
         });
         RegisterListener<Listeners.OnTick>(OnTick);
+        AddCommandListener("say", OnSay);
+        AddCommandListener("say_team", OnSay);
         RegisterListener<Listeners.OnServerPrecacheResources>(manifest =>
         {
             foreach (var resource in _engine.Modifiers.SelectMany(m => m.Resources))
@@ -66,13 +73,19 @@ public class CustomModPlugin : BasePlugin
     }
 
     // Open to everyone on purpose, like css_skip
-    [ConsoleCommand("css_modifier", "Apply a modifier now: css_modifier <id|off>. No argument lists them.")]
+    [ConsoleCommand("css_modifier", "Apply a modifier now: css_modifier <id|off>. No argument opens a menu (console: lists them).")]
     public void OnModifierCommand(CCSPlayerController? player, CommandInfo command)
     {
         var arg = command.ArgCount > 1 ? command.GetArg(1) : "";
 
         if (arg == "")
         {
+            if (player != null)
+            {
+                OpenModifierMenu(player);
+                return;
+            }
+
             command.ReplyToCommand($"Active: {_engine.Active?.Id ?? "none"}");
             foreach (var m in _engine.Modifiers)
                 command.ReplyToCommand($"  {m.Id} - {m.Name}: {m.Description}");
@@ -93,15 +106,68 @@ public class CustomModPlugin : BasePlugin
             return;
         }
 
-        _engine.Activate(modifier);
-        if (_engine.Active != modifier)
+        command.ReplyToCommand(ApplyModifier(modifier));
+    }
+
+    /// <summary>
+    /// Prints a numbered list in chat; the player then picks with !0, !1, ... (see OnSay).
+    /// Not CounterStrikeSharp's menus: those number from !1 and own css_1 to css_9.
+    /// </summary>
+    private void OpenModifierMenu(CCSPlayerController player)
+    {
+        player.PrintToChat($" {ChatColors.Grey}[Modifier]{ChatColors.Default} Active: {_engine.Active?.Name ?? "none"}. Type the number to pick:");
+        for (var i = 0; i < _engine.Modifiers.Count; i++)
         {
-            command.ReplyToCommand($"Failed to apply '{modifier.Id}', see server log");
-            return;
+            var m = _engine.Modifiers[i];
+            player.PrintToChat($" {ChatColors.Gold}!{i}{ChatColors.Default} {m.ChatColor}{m.Name}{ChatColors.Default} - {m.Description}");
+        }
+        player.PrintToChat($" {ChatColors.Gold}!{_engine.Modifiers.Count}{ChatColors.Default} Off");
+
+        _menuOpenUntil[player.Slot] = Environment.TickCount64 + MenuMilliseconds;
+    }
+
+    private HookResult OnSay(CCSPlayerController? player, CommandInfo info)
+    {
+        if (player == null || !_menuOpenUntil.TryGetValue(player.Slot, out var until))
+            return HookResult.Continue;
+
+        if (Environment.TickCount64 > until)
+        {
+            _menuOpenUntil.Remove(player.Slot);
+            return HookResult.Continue;
         }
 
+        var message = info.GetArg(1).Trim();
+        if (message.Length < 2 || message[0] is not ('!' or '/') || !int.TryParse(message[1..], out var choice))
+            return HookResult.Continue;
+
+        if (choice < 0 || choice > _engine.Modifiers.Count)
+            return HookResult.Continue;
+
+        _menuOpenUntil.Remove(player.Slot);
+        if (choice == _engine.Modifiers.Count)
+        {
+            _engine.Deactivate();
+            player.PrintToChat("Modifier off");
+        }
+        else
+        {
+            player.PrintToChat(ApplyModifier(_engine.Modifiers[choice]));
+        }
+
+        // Hide the "!0" from chat
+        return HookResult.Handled;
+    }
+
+    /// <summary>Applies and announces the modifier; returns a reply for whoever asked.</summary>
+    private string ApplyModifier(Modifier modifier)
+    {
+        _engine.Activate(modifier);
+        if (_engine.Active != modifier)
+            return $"Failed to apply '{modifier.Id}', see server log";
+
         Announce(modifier);
-        command.ReplyToCommand($"Applied {modifier.Id}");
+        return $"Applied {modifier.Id}";
     }
 
     private void Announce(Modifier modifier)

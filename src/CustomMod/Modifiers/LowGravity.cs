@@ -11,6 +11,6 @@ public class LowGravity : ConVarModifier
 
     protected override IReadOnlyDictionary<string, string> ConVars { get; } = new Dictionary<string, string>
     {
-        ["sv_gravity"] = "300", // default 800
+        ["sv_gravity"] = "200", // default 800
     };
 }

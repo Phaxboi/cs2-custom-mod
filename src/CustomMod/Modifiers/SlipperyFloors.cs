@@ -11,6 +11,6 @@ public class SlipperyFloors : ConVarModifier
 
     protected override IReadOnlyDictionary<string, string> ConVars { get; } = new Dictionary<string, string>
     {
-        ["sv_friction"] = "0.5", // default 5.2
+        ["sv_friction"] = "0.25", // default 5.2
     };
 }

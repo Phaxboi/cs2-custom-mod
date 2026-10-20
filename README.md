@@ -21,7 +21,7 @@ public class LowGravity : ConVarModifier
 
     protected override IReadOnlyDictionary<string, string> ConVars { get; } = new Dictionary<string, string>
     {
-        ["sv_gravity"] = "300",
+        ["sv_gravity"] = "200",
     };
 }
 ```
@@ -40,7 +40,9 @@ undo everything `Apply()` did. `Plugin` gives access to timers, listeners and ev
 
 Both commands are open to every player, in chat (`!modifier`) or the console (`css_modifier`):
 
-- `!modifier` lists modifiers and shows the active one
+- `!modifier` lists modifiers in chat, numbered from `!0`. Typing a number within 20 seconds
+  picks that modifier (the last number turns the modifier off). From the console it just lists
+  them
 - `!modifier <Id>` applies one now. Id is the class name, case-insensitive; a unique prefix
   works too (`!modifier slip`)
 - `!modifier off` reverts the active one
