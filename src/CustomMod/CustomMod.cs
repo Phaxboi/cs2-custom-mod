@@ -3,6 +3,7 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Modules.Admin;
 using CounterStrikeSharp.API.Modules.Commands;
+using CounterStrikeSharp.API.Modules.Entities.Constants;
 using CounterStrikeSharp.API.Modules.Utils;
 using CustomMod.Modifiers;
 
@@ -126,7 +127,28 @@ public class CustomModPlugin : BasePlugin
             player.PrintToCenterHtml(_centerHtml, 1);
     }
 
-    private static bool IsWarmup() =>
-        Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules")
-            .FirstOrDefault()?.GameRules?.WarmupPeriod ?? false;
+    // Open to everyone on purpose: this is a just-for-fun server
+    [ConsoleCommand("css_skip", "Skip to the next round (ends warmup during warmup)")]
+    public void OnSkipCommand(CCSPlayerController? player, CommandInfo command)
+    {
+        var gameRules = GetGameRules();
+        if (gameRules == null)
+            return;
+
+        var who = player?.PlayerName ?? "Console";
+        if (gameRules.WarmupPeriod)
+        {
+            Server.ExecuteCommand("mp_warmup_end");
+            Server.PrintToChatAll($" {ChatColors.Grey}[Skip]{ChatColors.Default} {who} ended warmup");
+            return;
+        }
+
+        gameRules.TerminateRound(1f, RoundEndReason.RoundDraw);
+        Server.PrintToChatAll($" {ChatColors.Grey}[Skip]{ChatColors.Default} {who} skipped the round");
+    }
+
+    private static CCSGameRules? GetGameRules() =>
+        Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules").FirstOrDefault()?.GameRules;
+
+    private static bool IsWarmup() => GetGameRules()?.WarmupPeriod ?? false;
 }
