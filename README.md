@@ -29,6 +29,10 @@ public class LowGravity : ConVarModifier
 Optionally override `Color` (hex, center-screen title), `ChatColor` (a `ChatColors` value) and
 `IconUrl` (image shown above the title) to style the announcement.
 
+Particles or models a modifier spawns must be listed in `Resources` so they are precached on map
+load; CS2 does not show unprecached resources. Changes to `Resources` apply after the next map
+change.
+
 Anything else derives from `Modifier` and implements `Apply()` and `Revert()`. `Revert()` must
 undo everything `Apply()` did. `Plugin` gives access to timers, listeners and event handlers.
 
@@ -41,3 +45,4 @@ Both commands are open to every player, in chat (`!modifier`) or the console (`c
   works too (`!modifier slip`)
 - `!modifier off` reverts the active one
 - `!skip` ends the current round as a draw, or ends warmup during warmup
+- `!freezebots` toggles bots standing still (`bot_stop`, set without `sv_cheats`)

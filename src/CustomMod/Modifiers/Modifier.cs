@@ -27,6 +27,12 @@ public abstract class Modifier
     /// <summary>Optional image shown above the name in the center-screen announcement.</summary>
     public virtual string? IconUrl => null;
 
+    /// <summary>
+    /// Resources (particles, models) to precache on map load. CS2 only shows precached
+    /// resources, so a change here takes effect after the next map change or restart.
+    /// </summary>
+    public virtual IEnumerable<string> Resources => [];
+
     /// <summary>The plugin instance, for timers, listeners and event handlers.</summary>
     protected BasePlugin Plugin { get; private set; } = null!;
 

@@ -2,6 +2,7 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Modules.Commands;
+using CounterStrikeSharp.API.Modules.Cvars;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
 using CounterStrikeSharp.API.Modules.Utils;
 using CustomMod.Modifiers;
@@ -32,6 +33,11 @@ public class CustomModPlugin : BasePlugin
             _centerHtml = null;
         });
         RegisterListener<Listeners.OnTick>(OnTick);
+        RegisterListener<Listeners.OnServerPrecacheResources>(manifest =>
+        {
+            foreach (var resource in _engine.Modifiers.SelectMany(m => m.Resources))
+                manifest.AddResource(resource);
+        });
     }
 
     public override void Unload(bool hotReload)
@@ -144,6 +150,22 @@ public class CustomModPlugin : BasePlugin
 
         gameRules.TerminateRound(1f, RoundEndReason.RoundDraw);
         Server.PrintToChatAll($" {ChatColors.Grey}[Skip]{ChatColors.Default} {who} skipped the round");
+    }
+
+    // Testing helper, open to everyone like css_skip. bot_stop is cheat-protected, so it is set
+    // directly (the same way ConVarModifier does) instead of through sv_cheats.
+    [ConsoleCommand("css_freezebots", "Toggle bots standing still (for testing)")]
+    public void OnFreezeBotsCommand(CCSPlayerController? player, CommandInfo command)
+    {
+        var botStop = ConVar.Find("bot_stop");
+        if (botStop == null)
+            return;
+
+        var frozen = NativeAPI.GetConvarValueAsString(botStop.AccessIndex) != "0";
+        NativeAPI.SetConvarValueAsString(botStop.AccessIndex, frozen ? "0" : "1");
+
+        var who = player?.PlayerName ?? "Console";
+        Server.PrintToChatAll($" {ChatColors.Grey}[Bots]{ChatColors.Default} {who} {(frozen ? "unfroze" : "froze")} the bots");
     }
 
     private static CCSGameRules? GetGameRules() =>
