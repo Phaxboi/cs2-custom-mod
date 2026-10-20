@@ -19,7 +19,10 @@ fi
 
 echo "==> Building $PLUGIN_NAME"
 rm -rf "$BUILD_DIR"
-dotnet build "$PROJECT" -c Release -o "$BUILD_DIR" --nologo -v quiet
+# .NET 10 creates its lock dir via mkdtemp in $XDG_RUNTIME_DIR, which is read-only
+# in the Claude Code sandbox. Redirect it for the build only; systemd tools still
+# need the real XDG_RUNTIME_DIR.
+XDG_RUNTIME_DIR="${TMPDIR:-/tmp}" dotnet build "$PROJECT" -c Release -o "$BUILD_DIR" --nologo -v quiet
 
 echo "==> Deploying to $TARGET_DIR"
 mkdir -p "$TARGET_DIR"
