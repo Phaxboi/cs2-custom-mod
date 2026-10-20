@@ -34,11 +34,10 @@ undo everything `Apply()` did. `Plugin` gives access to timers, listeners and ev
 
 ## Testing
 
-`css_modifier` (server console, RCON or `@css/root` admins):
+Both commands are open to every player, in chat (`!modifier`) or the console (`css_modifier`):
 
-- `css_modifier` lists modifiers and shows the active one
-- `css_modifier <Id>` applies one now (Id is the class name, case-insensitive)
-- `css_modifier off` reverts the active one
-
-`!skip` in chat (or `css_skip`) is open to every player: it ends the current round as a draw,
-or ends warmup during warmup.
+- `!modifier` lists modifiers and shows the active one
+- `!modifier <Id>` applies one now. Id is the class name, case-insensitive; a unique prefix
+  works too (`!modifier slip`)
+- `!modifier off` reverts the active one
+- `!skip` ends the current round as a draw, or ends warmup during warmup

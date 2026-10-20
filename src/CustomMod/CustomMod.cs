@@ -1,7 +1,6 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
-using CounterStrikeSharp.API.Modules.Admin;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
 using CounterStrikeSharp.API.Modules.Utils;
@@ -60,8 +59,8 @@ public class CustomModPlugin : BasePlugin
         return HookResult.Continue;
     }
 
+    // Open to everyone on purpose, like css_skip
     [ConsoleCommand("css_modifier", "Apply a modifier now: css_modifier <id|off>. No argument lists them.")]
-    [RequiresPermissions("@css/root")]
     public void OnModifierCommand(CCSPlayerController? player, CommandInfo command)
     {
         var arg = command.ArgCount > 1 ? command.GetArg(1) : "";

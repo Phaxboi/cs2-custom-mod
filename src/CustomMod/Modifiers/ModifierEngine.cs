@@ -28,8 +28,16 @@ public class ModifierEngine
         _logger.LogInformation("Loaded {Count} modifiers: {Ids}", Modifiers.Count, string.Join(", ", Modifiers.Select(m => m.Id)));
     }
 
-    public Modifier? Find(string id) =>
-        Modifiers.FirstOrDefault(m => m.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
+    /// <summary>Exact Id match, otherwise a unique Id prefix ("slip" finds SlipperyFloors).</summary>
+    public Modifier? Find(string id)
+    {
+        var exact = Modifiers.FirstOrDefault(m => m.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
+        if (exact != null)
+            return exact;
+
+        var prefixed = Modifiers.Where(m => m.Id.StartsWith(id, StringComparison.OrdinalIgnoreCase)).ToList();
+        return prefixed.Count == 1 ? prefixed[0] : null;
+    }
 
     /// <summary>Random modifier, never the same one twice in a row (when there is more than one).</summary>
     public Modifier? PickRandom()
