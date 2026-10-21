@@ -30,8 +30,9 @@ Optionally override `Color` (hex, center-screen title), `ChatColor` (a `ChatColo
 `IconUrl` (image shown above the title) to style the announcement.
 
 Modifiers that hand out a fixed loadout can derive from `LoadoutModifier`: list the items in
-`Loadout`, and optionally set `Armor` and `Helmet` (none by default). Buying is disabled, the
-loadout is given on spawn, and survivors are reset to a knife and pistol when it ends.
+`Loadout`, and optionally set `Armor` and `Helmet` (none by default) and `ExtraConVars`. Buying
+is disabled, the loadout is given on spawn, and survivors are reset to a knife and pistol when it
+ends.
 
 Particles or models a modifier spawns must be listed in `Resources` so they are precached on map
 load; CS2 does not show unprecached resources. Changes to `Resources` apply after the next map
@@ -54,3 +55,4 @@ Both commands are open to every player, in chat (`!modifier`) or the console (`c
 - `!modifier off` reverts the active one
 - `!skip` ends the current round as a draw, or ends warmup during warmup
 - `!freezebots` toggles bots standing still (`bot_stop`, set without `sv_cheats`)
+- `!traitor` (Sabotage rounds only) makes you your team's traitor

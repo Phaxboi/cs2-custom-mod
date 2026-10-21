@@ -19,7 +19,10 @@ public abstract class LoadoutModifier : ConVarModifier
 
     protected virtual bool Helmet => false;
 
-    protected override IReadOnlyDictionary<string, string> ConVars { get; } = new Dictionary<string, string>
+    /// <summary>Any other ConVars to set for the round, on top of disabling buying.</summary>
+    protected virtual IReadOnlyDictionary<string, string> ExtraConVars { get; } = new Dictionary<string, string>();
+
+    protected override IReadOnlyDictionary<string, string> ConVars => new Dictionary<string, string>(ExtraConVars)
     {
         // 3 = nobody can buy. Only read when a round is set up, so a modifier applied
         // mid-round (!modifier) blocks buying from the next round on

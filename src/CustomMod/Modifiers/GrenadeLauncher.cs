@@ -26,6 +26,11 @@ public class GrenadeLauncher : LoadoutModifier
 
     protected override IReadOnlyList<string> Loadout { get; } = ["weapon_knife", "weapon_awp"];
 
+    protected override IReadOnlyDictionary<string, string> ExtraConVars { get; } = new Dictionary<string, string>
+    {
+        ["sv_infinite_ammo"] = "1", // never reload
+    };
+
     private MemoryFunctionWithReturn<nint, nint, nint, nint, nint, int, float, nint>? _create;
     private readonly BasePlugin.GameEventHandler<EventWeaponFire> _onWeaponFire;
     private readonly Listeners.OnEntityTakeDamagePre _onTakeDamage;
