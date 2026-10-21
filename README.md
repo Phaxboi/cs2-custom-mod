@@ -2,7 +2,7 @@
 
 CounterStrikeSharp plugin for a private CS2 server. Each round (outside warmup) a random
 modifier is applied and announced in chat and on screen. It lasts through the round-end delay
-and is swapped for the next one when players respawn.
+and is swapped for the next one just before players respawn (`round_prestart`).
 The same modifier is never picked twice in a row.
 
 ## Adding a modifier
@@ -29,6 +29,10 @@ public class LowGravity : ConVarModifier
 Optionally override `Color` (hex, center-screen title), `ChatColor` (a `ChatColors` value) and
 `IconUrl` (image shown above the title) to style the announcement.
 
+Modifiers that hand out a fixed loadout can derive from `LoadoutModifier`: list the items in
+`Loadout`, and optionally set `Armor` and `Helmet` (none by default). Buying is disabled, the
+loadout is given on spawn, and survivors are reset to a knife and pistol when it ends.
+
 Particles or models a modifier spawns must be listed in `Resources` so they are precached on map
 load; CS2 does not show unprecached resources. Changes to `Resources` apply after the next map
 change.
@@ -45,6 +49,8 @@ Both commands are open to every player, in chat (`!modifier`) or the console (`c
   them
 - `!modifier <Id>` applies one now. Id is the class name, case-insensitive; a unique prefix
   works too (`!modifier slip`)
+- `!modifier next <Id>` starts that modifier next round instead of a random one. Use this to test
+  round setup (loadouts, buying), which a mid-round `!modifier <Id>` cannot fully apply
 - `!modifier off` reverts the active one
 - `!skip` ends the current round as a draw, or ends warmup during warmup
 - `!freezebots` toggles bots standing still (`bot_stop`, set without `sv_cheats`)

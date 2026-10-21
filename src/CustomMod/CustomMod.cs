@@ -22,6 +22,9 @@ public class CustomModPlugin : BasePlugin
 
     private ModifierEngine _engine = null!;
 
+    // Set by "!modifier next <id>": used instead of a random pick at the next round
+    private Modifier? _next;
+
     // Player slot -> until when their !modifier list accepts a number
     private readonly Dictionary<int, long> _menuOpenUntil = new();
 
@@ -52,16 +55,18 @@ public class CustomModPlugin : BasePlugin
         _engine.Deactivate();
     }
 
-    // The modifier stays active through the round-end delay and is swapped here,
-    // when players respawn for the next round
+    // The modifier stays active through the round-end delay and is swapped here, just before
+    // players respawn for the next round. Prestart rather than round_start, because some settings
+    // (like sv_buy_status_override) are only read while the game sets up the new round.
     [GameEventHandler]
-    public HookResult OnRoundStart(EventRoundStart @event, GameEventInfo info)
+    public HookResult OnRoundPrestart(EventRoundPrestart @event, GameEventInfo info)
     {
         _engine.Deactivate();
         if (IsWarmup())
             return HookResult.Continue;
 
-        var modifier = _engine.PickRandom();
+        var modifier = _next ?? _engine.PickRandom();
+        _next = null;
         if (modifier == null)
             return HookResult.Continue;
 
@@ -73,7 +78,7 @@ public class CustomModPlugin : BasePlugin
     }
 
     // Open to everyone on purpose, like css_skip
-    [ConsoleCommand("css_modifier", "Apply a modifier now: css_modifier <id|off>. No argument opens a menu (console: lists them).")]
+    [ConsoleCommand("css_modifier", "Apply a modifier now: css_modifier <id|off>, or next round: css_modifier next <id>. No argument opens a menu (console: lists them).")]
     public void OnModifierCommand(CCSPlayerController? player, CommandInfo command)
     {
         var arg = command.ArgCount > 1 ? command.GetArg(1) : "";
@@ -96,6 +101,14 @@ public class CustomModPlugin : BasePlugin
         {
             _engine.Deactivate();
             command.ReplyToCommand("Modifier off");
+            return;
+        }
+
+        if (arg.Equals("next", StringComparison.OrdinalIgnoreCase))
+        {
+            var id = command.ArgCount > 2 ? command.GetArg(2) : "";
+            _next = _engine.Find(id);
+            command.ReplyToCommand(_next == null ? $"Unknown modifier '{id}'" : $"{_next.Id} starts next round");
             return;
         }
 

@@ -8,19 +8,14 @@ namespace CustomMod.Modifiers;
 /// Everyone is stripped to a knife, an HE grenade and a molotov. A thrown grenade is replaced
 /// right away, and buying is disabled. The C4 is removed too, so rounds end by elimination or time.
 /// </summary>
-public class GrenadeParty : ConVarModifier
+public class GrenadeParty : LoadoutModifier
 {
-    private static readonly string[] Loadout = ["weapon_knife", "weapon_hegrenade", "weapon_molotov"];
-
     public override string Name => "Grenade Party";
     public override string Description => "Knife, HE and molotov only. Infinite grenades";
     public override string Color => "#ffb300";
     public override char ChatColor => ChatColors.Yellow;
 
-    protected override IReadOnlyDictionary<string, string> ConVars { get; } = new Dictionary<string, string>
-    {
-        ["mp_buytime"] = "0", // no buying this round
-    };
+    protected override IReadOnlyList<string> Loadout { get; } = ["weapon_knife", "weapon_hegrenade", "weapon_molotov"];
 
     private readonly BasePlugin.GameEventHandler<EventGrenadeThrown> _onGrenadeThrown;
 
@@ -33,17 +28,6 @@ public class GrenadeParty : ConVarModifier
     {
         base.Apply();
         Plugin.RegisterEventHandler(_onGrenadeThrown);
-
-        // Next frame, so the game has finished handing out the spawn loadout first
-        Server.NextFrame(() =>
-        {
-            foreach (var player in Utilities.GetPlayers().Where(p => p is { IsValid: true, PawnIsAlive: true }))
-            {
-                player.RemoveWeapons();
-                foreach (var item in Loadout)
-                    player.GiveNamedItem(item);
-            }
-        });
     }
 
     public override void Revert()
